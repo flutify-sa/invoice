@@ -38,22 +38,16 @@ class ClientDropdownState extends State<ClientDropdown> {
     }
   }
 
-  void _addClient() {
-    showDialog(
-      context: context,
-      builder: (context) => AddClientDialog(
-        controller: _clientController,
-        onAdd: (newClient) {
-          if (newClient.isNotEmpty) {
-            setState(() {
-              clients.add(newClient);
-              selectedClient = newClient;
-            });
-            _saveClients();
-          }
-        },
-      ),
-    );
+  Future<void> _addClient(String newClient) async {
+    if (newClient.isNotEmpty) {
+      setState(() {
+        clients.add(newClient);
+        selectedClient = newClient;
+      });
+      await _saveClients();
+      await ClientStorage.createClientFile(
+          newClient); // Auto-create client file
+    }
   }
 
   @override
@@ -79,13 +73,21 @@ class ClientDropdownState extends State<ClientDropdown> {
             },
             decoration: const InputDecoration(
               border: OutlineInputBorder(),
-              hintText: 'Client',
+              labelText: 'Client',
             ),
           ),
         ),
         const SizedBox(height: 20),
         ElevatedButton(
-          onPressed: _addClient,
+          onPressed: () {
+            showDialog(
+              context: context,
+              builder: (context) => AddClientDialog(
+                controller: _clientController,
+                onAdd: _addClient,
+              ),
+            );
+          },
           child: const Text('Add Client'),
         ),
       ],
